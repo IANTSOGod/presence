@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   const { id_matiere, date_deb, date_fin } = body;
 
   const getcours = await Prisma.cours.findMany({
-    where: { date_deb: date_deb, date_fin: date_fin },
+    where: { date_deb: { lte: date_deb }, date_fin: { gte: date_fin } },
   });
   if (getcours.length > 0) {
     return new NextResponse(
