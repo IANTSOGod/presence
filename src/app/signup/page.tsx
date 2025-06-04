@@ -75,7 +75,7 @@ export default function page() {
         <Label className="ml-16 text-md">Email</Label>
         <Input
           className="w-3/4 mx-auto mb-2"
-          placeholder="Enter your password ici"
+          placeholder="Entrez votre email ici"
           type="email"
           name="email"
           onChange={handleData}
@@ -84,7 +84,7 @@ export default function page() {
         <Label className="ml-16 text-md mb-2">Mot de passe</Label>
         <Input
           className="w-3/4 mx-auto mb-20"
-          placeholder="Enter votre mot de passe ici"
+          placeholder="Entrez votre mot de passe ici"
           type="password"
           name="mdp"
           onChange={handleData}
