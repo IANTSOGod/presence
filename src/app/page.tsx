@@ -56,6 +56,7 @@ export default function page() {
           type="email"
           name="email"
           onChange={handleData}
+          required
         ></Input>
         <Label className="ml-16 text-md mb-2 mt-10">Password</Label>
         <Input
@@ -64,6 +65,7 @@ export default function page() {
           type="password"
           name="mdp"
           onChange={handleData}
+          required
         ></Input>
         <Button className="ml-16 w-3/4" type="submit">
           Login
