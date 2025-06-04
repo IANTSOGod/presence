@@ -68,7 +68,9 @@ export default function page() {
           Login
         </Button>
         <br></br>
-        <Button className="mt-4 ml-16 w-3/4 outline-2">Sign up</Button>
+        <Button className="mt-4 ml-16 w-3/4" variant={"outline"}>
+          Sign up
+        </Button>
       </form>
     </div>
   );
