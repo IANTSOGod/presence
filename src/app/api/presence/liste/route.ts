@@ -3,7 +3,17 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const listpresence = await Prisma.presence.findMany();
+    const listpresence = await Prisma.presence.findMany({
+      include: {
+        do_presence: true, // Inclut les infos de l'étudiant
+        to_course: {
+          include: {
+            has_matiere: true, // Inclut les infos de la matière du cours
+          },
+        },
+      },
+    });
+
     if (listpresence.length > 0) {
       return NextResponse.json(listpresence);
     } else {
@@ -13,6 +23,9 @@ export async function GET() {
       );
     }
   } catch (error) {
-    return NextResponse.json(error);
+    return new NextResponse(
+      JSON.stringify({ message: "Erreur serveur", error }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
