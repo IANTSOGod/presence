@@ -3,6 +3,7 @@ import { UserContext } from "@/components/context/Usercontext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, FormEvent, useContext, useState } from "react";
 interface SignupInterface {
@@ -94,9 +95,11 @@ export default function page() {
           Sign up
         </Button>
         <br></br>
-        <Button className="mt-4 ml-16 w-3/4" variant={"outline"}>
-          Go back
-        </Button>
+        <Link href={"/"}>
+          <Button className="mt-4 ml-16 w-3/4" variant={"outline"}>
+            Go back
+          </Button>
+        </Link>
       </form>
     </div>
   );
