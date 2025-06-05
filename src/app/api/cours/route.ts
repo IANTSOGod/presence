@@ -5,34 +5,53 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { id_matiere, date_deb, date_fin } = body;
 
-  const getcours = await Prisma.cours.findMany({
-    where: { date_deb: { lte: date_deb }, date_fin: { gte: date_fin } },
-  });
-  if (getcours.length > 0) {
-    return new NextResponse(
-      JSON.stringify({ message: "Un cours a déja lieu" }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
+  const debut = new Date(date_deb);
+  const fin = new Date(date_fin);
+
+  // Vérifie s’il existe un cours avec chevauchement
+  const coursEnConflit = await Prisma.cours.findFirst({
+    where: {
+      OR: [
+        {
+          date_deb: {
+            lte: fin,
+          },
+          date_fin: {
+            gte: debut,
+          },
         },
+      ],
+    },
+  });
+
+  if (coursEnConflit) {
+    return new NextResponse(
+      JSON.stringify({
+        message: "Un cours a déjà lieu pendant cette période.",
+      }),
+      {
+        status: 409, // Conflit
+        headers: { "Content-Type": "application/json" },
       }
     );
-  } else {
-    try {
-      const newCours = await Prisma.cours.create({
-        data: {
-          id_matiere: id_matiere,
-          date_deb: date_deb,
-          date_fin: date_fin,
-        },
-      });
-      if (newCours) {
-        return NextResponse.json(newCours);
-      }
-    } catch (error) {
-      return NextResponse.json(error);
-    }
+  }
+
+  try {
+    // Si aucun conflit, on crée le cours
+    const newCours = await Prisma.cours.create({
+      data: {
+        id_matiere,
+        date_deb: debut,
+        date_fin: fin,
+      },
+    });
+
+    return NextResponse.json(newCours);
+  } catch (error) {
+    return new NextResponse(JSON.stringify({ error: String(error) }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
 

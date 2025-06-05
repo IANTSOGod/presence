@@ -15,19 +15,36 @@ export async function POST(req: NextRequest) {
       },
     });
     if (cours.length > 0) {
-      const presence = await Prisma.presence.create({
-        data: {
-          id_cours: cours[0].id,
+      const presenceExiste = await Prisma.presence.findMany({
+        where: {
           id_etudiant: id_user,
         },
       });
-      if (presence) {
-        return NextResponse.json(presence);
-      } else {
+      if (presenceExiste.length > 0) {
         return new NextResponse(
-          JSON.stringify({ message: "Erreur de presence" }),
-          { status: 401, headers: { "Content-Type": "application/json" } }
+          JSON.stringify({ message: "Vous avez déjà fait une présence" }),
+          {
+            status: 409,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
+      } else {
+        const presence = await Prisma.presence.create({
+          data: {
+            id_cours: cours[0].id,
+            id_etudiant: id_user,
+          },
+        });
+        if (presence) {
+          return NextResponse.json(presence);
+        } else {
+          return new NextResponse(
+            JSON.stringify({ message: "Erreur de presence" }),
+            { status: 401, headers: { "Content-Type": "application/json" } }
+          );
+        }
       }
     } else {
       return new NextResponse(
