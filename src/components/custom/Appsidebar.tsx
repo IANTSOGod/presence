@@ -19,18 +19,18 @@ const AppSidebar = () => {
   const [navItems, setNavItems] = useState<NavItemInterface[]>([]);
 
   const NavItemsEtudiant: NavItemInterface[] = [
-    { title: "Home", icon: Home, href: "/home" },
+    { title: "Historique", icon: Home, href: "/home" },
     { title: "Faire presence", icon: LineChart, href: "/presence" },
   ];
 
   const NavItemsDelegue: NavItemInterface[] = [
-    { title: "Home", icon: Home, href: "/home" },
+    { title: "Historique", icon: Home, href: "/home" },
     { title: "Faire presence", icon: LineChart, href: "/presence" },
     { title: "Rapport", icon: BarChart3, href: "/rapport" },
   ];
 
   const NavItemsProf: NavItemInterface[] = [
-    { title: "Home", icon: Home, href: "/home" },
+    { title: "Historique", icon: Home, href: "/home" },
     {
       title: "Validation presence",
       icon: CircleAlert,
