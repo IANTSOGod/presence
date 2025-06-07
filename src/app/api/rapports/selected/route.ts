@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
         const presences = await Prisma.presence.findMany({
           where: {
             id_cours: { in: idsCours },
+            is_valid: true,
           },
         });
         return NextResponse.json({ presences });
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
         const presences = await Prisma.presence.findMany({
           where: {
             id_cours: { in: idsCours },
+            is_valid: true,
           },
         });
         return NextResponse.json({ presences });
@@ -80,6 +82,7 @@ export async function POST(req: NextRequest) {
         const presences = await Prisma.presence.findMany({
           where: {
             id_cours: { in: idsCours },
+            is_valid: true,
           },
         });
         return NextResponse.json({ presences });
@@ -97,6 +100,7 @@ export async function POST(req: NextRequest) {
         const presences = await Prisma.presence.findMany({
           where: {
             id_cours: { in: idsCours },
+            is_valid: true,
           },
         });
         return NextResponse.json({ presences });
@@ -111,6 +115,7 @@ export async function POST(req: NextRequest) {
         const presences = await Prisma.presence.findMany({
           where: {
             id_cours: { in: idsCours },
+            is_valid: true,
           },
         });
 
