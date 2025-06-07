@@ -24,12 +24,6 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-interface docourseInterface {
-  id: string;
-  date_deb: string;
-  date_fin: string;
-  id_matiere: string;
-}
 interface docourseInterface2 {
   id: string;
   date_deb: string;
@@ -49,14 +43,6 @@ interface dopresence {
   email: string;
   role: string;
 }
-interface presenceInterface {
-  to_course: docourseInterface;
-  do_presence: dopresence;
-  id: string;
-  id_cours: string;
-  id_etudiant: string;
-  is_valid: Boolean;
-}
 interface presenceInterface2 {
   to_course: docourseInterface2;
   do_presence: dopresence;
@@ -64,6 +50,7 @@ interface presenceInterface2 {
   id_cours: string;
   id_etudiant: string;
   is_valid: Boolean;
+  status: string;
 }
 interface matierelistInterface {
   id: string;
@@ -78,41 +65,49 @@ interface historiqueInterface {
 
 export default function Page() {
   const [isfiltered, setisfiltered] = useState(false);
-  const [data, setdata] = useState<historiqueInterface>();
-  const [presencetable, setpresencetable] = useState<presenceInterface[]>();
+  const [data, setdata] = useState<historiqueInterface>({});
+  const [presencetable, setpresencetable] = useState<presenceInterface2[]>([]);
   const [allpresence, setallpresence] = useState<presenceInterface2[]>();
   const [matierelist, setmatierelist] = useState<matierelistInterface[]>();
-  const [selectedmatiere, setselectedmatiere] =
-    useState<string>("Communication");
-  const [date, setDate] = useState<Date>(); // ✅ Valeur initiale undefined
+  const [selectedmatiere, setselectedmatiere] = useState<string>();
+  const [date, setDate] = useState<Date>();
+  const [isactive, setisactive] = useState<Boolean>(false);
   const [selectedstudent, setselectedstudent] = useState<string>();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let isoDate;
+
+    const requestData: any = {};
+
+    if (data?.etudiant && data.etudiant.trim() !== "") {
+      requestData.etudiant = data.etudiant.trim();
+    }
+
+    if (data?.matiere && data.matiere !== "") {
+      requestData.matiere = data.matiere;
+    }
+
     if (data?.date) {
       const dateInMadagascar = new Date(
         data.date.getTime() - data.date.getTimezoneOffset() * 60000
       );
       dateInMadagascar.setHours(dateInMadagascar.getHours() + 3);
-      isoDate = dateInMadagascar.toISOString();
+      requestData.date = dateInMadagascar.toISOString();
     }
-    console.log(isoDate);
-    console.log(data);
+
+    setisfiltered(true);
+
     const response = await fetch("http://localhost:3000/api/presence/history", {
       headers: {
         "Content-Type": "application/json",
       },
       method: "POST",
-      body: JSON.stringify({
-        etudiant: data?.etudiant,
-        matiere: data?.matiere,
-        date: isoDate,
-      }),
+      body: JSON.stringify(requestData),
     });
+
     if (response.ok) {
       const result = await response.json();
-      const finaldata = result as presenceInterface[];
+      const finaldata = result as presenceInterface2[];
       setpresencetable(finaldata);
     } else {
       setpresencetable([]);
@@ -120,19 +115,60 @@ export default function Page() {
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setselectedstudent(e.target.value);
-    setdata({ ...data, [e.target.name]: e.target.value });
+    const value = e.target.value.trim();
+    if (value !== "") {
+      setselectedstudent(value);
+      setdata((prev) => ({ ...prev, [e.target.name]: value }));
+    } else {
+      setselectedstudent(undefined);
+      setdata((prev) => {
+        const newData = { ...prev };
+        delete newData[e.target.name as keyof historiqueInterface];
+        return newData;
+      });
+    }
+  };
+
+  const handleResetFilters = () => {
+    setisfiltered(false);
+    setpresencetable([]);
+    setselectedstudent(undefined);
+    setselectedmatiere(undefined);
+    setDate(undefined);
+    setdata({});
   };
 
   useEffect(() => {
-    setdata((prev) => ({ ...prev, matiere: selectedmatiere }));
+    if (selectedmatiere && selectedmatiere !== "") {
+      setdata((prev) => ({ ...prev, matiere: selectedmatiere }));
+    } else {
+      setdata((prev) => {
+        const newData = { ...prev };
+        delete newData.matiere;
+        return newData;
+      });
+    }
   }, [selectedmatiere]);
 
   useEffect(() => {
     if (date) {
       setdata((prev) => ({ ...prev, date: new Date(date) }));
+    } else {
+      setdata((prev) => {
+        const newData = { ...prev };
+        delete newData.date;
+        return newData;
+      });
     }
   }, [date]);
+
+  useEffect(() => {
+    const hasStudent = selectedstudent && selectedstudent.trim() !== "";
+    const hasMatiere = selectedmatiere && selectedmatiere !== "";
+    const hasDate = date !== undefined;
+
+    setisactive(hasStudent || hasMatiere || hasDate);
+  }, [selectedstudent, selectedmatiere, date]);
 
   useEffect(() => {
     const handlematiere = async () => {
@@ -181,6 +217,7 @@ export default function Page() {
               className="mt-5 w-[250px]"
               placeholder="Entrez un nom ou prenom"
               name="etudiant"
+              value={selectedstudent || ""}
               onChange={handleChange}
             />
           </div>
@@ -188,7 +225,7 @@ export default function Page() {
             <Label>Matière</Label>
             <Select
               onValueChange={(value) => setselectedmatiere(value)}
-              defaultValue={selectedmatiere}
+              value={selectedmatiere || ""}
             >
               <SelectTrigger className="w-[250px] bg-white mt-5">
                 <SelectValue placeholder="Sélectionnez une matière" />
@@ -235,16 +272,25 @@ export default function Page() {
             </Popover>
           </div>
 
-          <div className="ml-20">
+          <div className="ml-20 flex flex-col gap-2">
             <Button
-              className="w-[250px] bg-blue-500 text-white mt-8"
+              className="w-[250px] bg-blue-500 text-white mt-8 disabled:bg-gray-300 disabled:cursor-not-allowed"
               type="submit"
-              onClick={() => {
-                setisfiltered(true);
-              }}
+              disabled={!isactive}
             >
               Filtrer
             </Button>
+
+            {isfiltered && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-[250px]"
+                onClick={handleResetFilters}
+              >
+                Réinitialiser
+              </Button>
+            )}
           </div>
         </form>
 
@@ -252,18 +298,22 @@ export default function Page() {
           {isfiltered ? (
             presencetable && presencetable.length > 0 ? (
               presencetable.map((presence) => (
-                <Card key={presence.id} className="mx-20 mt-10 h-[150px]">
+                <Card key={presence.id} className="mx-20 h-[150px]">
                   <CardTitle className="text-xl text-blue-500 ml-5">
                     {presence.do_presence.nom} {presence.do_presence.prenom}
                   </CardTitle>
                   <CardContent className="flex">
-                    <Label>{selectedmatiere}</Label>
+                    <Label>{presence.to_course.has_matiere.titre}</Label>
                     <Label className="ml-auto">
-                      {presence.is_valid ? (
-                        <Badge variant={"secondary"}>Présent</Badge>
-                      ) : (
-                        <Badge variant={"destructive"}>Absent</Badge>
-                      )}
+                      <Badge
+                        variant={
+                          presence.status == "Present"
+                            ? "secondary"
+                            : "destructive"
+                        }
+                      >
+                        {presence.status}
+                      </Badge>
                     </Label>
                   </CardContent>
                 </Card>
@@ -271,7 +321,7 @@ export default function Page() {
             ) : (
               <div className="flex justify-center items-center h-40">
                 <p className="text-gray-500 text-lg italic">
-                  Aucun résultat trouvé
+                  Aucun résultat trouvé pour les critères sélectionnés
                 </p>
               </div>
             )

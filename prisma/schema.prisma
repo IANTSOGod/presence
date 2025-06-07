@@ -20,6 +20,11 @@ enum Role {
   Delegue
 }
 
+enum StatusPresence {
+  Present
+  Absent
+}
+
 model Personne {
   id          String     @id @default(cuid())
   nom         String
@@ -31,12 +36,13 @@ model Personne {
 }
 
 model Presence {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   id_cours    String
   id_etudiant String
-  is_valid    Boolean  @default(false)
-  do_presence Personne @relation("do_presence", fields: [id_etudiant], references: [id])
-  to_course   Cours    @relation("to_cours", fields: [id_cours], references: [id])
+  is_valid    Boolean        @default(false)
+  status      StatusPresence
+  do_presence Personne       @relation("do_presence", fields: [id_etudiant], references: [id])
+  to_course   Cours          @relation("to_cours", fields: [id_cours], references: [id])
 }
 
 model Matiere {

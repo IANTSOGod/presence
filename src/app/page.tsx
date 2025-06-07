@@ -41,9 +41,11 @@ export default function page() {
     if (response.ok) {
       const result = await response.json();
       setUser(result as userInterface);
+      localStorage.setItem("user", JSON.stringify(result));
       router.push("/home");
     }
   };
+
 
   return (
     <div className="w-[500px] h-[600px] border-gray border-2 shadow-md mx-auto mt-10 rounded-2xl">

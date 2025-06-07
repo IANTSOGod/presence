@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const listpresence = await Prisma.presence.findMany({
+      where: { is_valid: true },
       include: {
         do_presence: true, // Inclut les infos de l'étudiant
         to_course: {

@@ -1,22 +1,22 @@
-"use client"; 
+"use client";
 
-import { LineChart, BarChart3, Home, CircleAlert } from "lucide-react"; 
-import { Sidebar, SidebarContent } from "../ui/sidebar"; 
+import { LineChart, BarChart3, Home, CircleAlert } from "lucide-react";
+import { Sidebar, SidebarContent } from "../ui/sidebar";
 import { cn } from "@/lib/utils";
-import Link from "next/link"; 
-import { usePathname } from "next/navigation"; 
-import { useContext, useEffect, useState } from "react"; 
-import { UserContext } from "../context/Usercontext"; 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
+import { UserContext } from "../context/Usercontext";
 interface NavItemInterface {
   title: string;
-  icon: React.ElementType; 
+  icon: React.ElementType;
   href: string;
 }
 
 const AppSidebar = () => {
-  const { user } = useContext(UserContext); 
-  const pathname = usePathname(); 
-  const [navItems, setNavItems] = useState<NavItemInterface[]>([]); 
+  const { user, setUser } = useContext(UserContext);
+  const pathname = usePathname();
+  const [navItems, setNavItems] = useState<NavItemInterface[]>([]);
 
   const NavItemsEtudiant: NavItemInterface[] = [
     { title: "Home", icon: Home, href: "/home" },
@@ -39,7 +39,14 @@ const AppSidebar = () => {
     { title: "Rapport", icon: BarChart3, href: "/rapport" },
   ];
 
-  // Choix du menu selon le rôle
+  useEffect(() => {
+    if (!user) {
+      const newuser = localStorage.getItem("user");
+      if (newuser) {
+        setUser(JSON.parse(newuser));
+      }
+    }
+  }, []);
   useEffect(() => {
     if (!user?.role) return;
 
@@ -57,6 +64,7 @@ const AppSidebar = () => {
         setNavItems([]);
     }
   }, [user?.role]);
+
   return (
     <Sidebar className="mt-[70px]">
       <SidebarContent className="px-2">

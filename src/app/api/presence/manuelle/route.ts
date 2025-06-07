@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { id_user } = body;
+  const { id_user, status } = body;
 
   try {
     const now = new Date();
@@ -31,18 +31,26 @@ export async function POST(req: NextRequest) {
           }
         );
       } else {
-        const presence = await Prisma.presence.create({
-          data: {
-            id_cours: cours[0].id,
-            id_etudiant: id_user,
-          },
-        });
-        if (presence) {
-          return NextResponse.json(presence);
-        } else {
+        try {
+          const presence = await Prisma.presence.create({
+            data: {
+              id_cours: cours[0].id,
+              id_etudiant: id_user,
+              status: status,
+            },
+          });
+          if (presence) {
+            return NextResponse.json(presence);
+          }
+        } catch (error) {
           return new NextResponse(
-            JSON.stringify({ message: "Erreur de presence" }),
-            { status: 401, headers: { "Content-Type": "application/json" } }
+            JSON.stringify({ message: "Utilisateur non existant" }),
+            {
+              status: 401,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
           );
         }
       }

@@ -79,7 +79,11 @@ export async function POST(req: NextRequest) {
         id_etudiant: { in: idpersonnes },
       },
       include: {
-        to_course: true,
+        to_course: {
+          include: {
+            has_matiere: true, // Inclure la matière associée
+          },
+        },
         do_presence: true,
       },
     });

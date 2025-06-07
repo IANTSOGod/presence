@@ -1,104 +1,144 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
-import { Button } from "@/components/ui/button";
+import { useRef, useState, useEffect } from "react";
+import jsQR from "jsqr";
 
-export default function QrScanner() {
-  const scannerId = "qr-reader";
-  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+interface Qrcodeerror {
+  message: string;
+}
+
+export default function Qrscanner() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [scannedData, setScannedData] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [scannedCode, setScannedCode] = useState<string | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  // Fonction de démarrage
-  const startScanner = async () => {
+  // Fonction pour démarrer le scan
+  const startScanning = async () => {
     try {
-      const qrRegion = document.getElementById(scannerId);
-
-      // Nettoie l'ancien contenu HTML du div
-      if (qrRegion) qrRegion.innerHTML = "";
-
-      if (!html5QrCodeRef.current) {
-        html5QrCodeRef.current = new Html5Qrcode(scannerId);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setIsScanning(true);
       }
-
-      await html5QrCodeRef.current.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
-        async (decodedText) => {
-          setScannedCode(decodedText);
-          await stopScanner();
-        },
-        (error) => {
-          // Silence les erreurs
-        }
-      );
-
-      setIsScanning(true);
     } catch (err) {
-      console.error("Erreur startScanner:", err);
+      console.error("Erreur d'accès à la caméra:", err);
+      setIsScanning(false);
     }
   };
 
-  // Fonction d'arrêt du scanner
-  const stopScanner = async () => {
-    if (html5QrCodeRef.current?.isScanning) {
-      try {
-        await html5QrCodeRef.current.stop();
-        await html5QrCodeRef.current.clear();
-        setIsScanning(false);
-      } catch (err) {
-        console.error("Erreur lors de l'arrêt du scanner:", err);
+  // Fonction pour arrêter le scan
+  const stopScanning = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsScanning(false);
+  };
+
+  // Fonction de scan QR code
+  const scan = () => {
+    if (!isScanning || !videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+
+    if (context && video.videoWidth > 0 && video.videoHeight > 0) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "attemptBoth", // Améliore la détection dans différentes conditions d'éclairage
+      });
+
+      if (code && code.data) {
+        setScannedData(code.data);
+        stopScanning();
+        return;
       }
+    } else {
+      console.log("Vidéo non prête ou dimensions invalides");
+    }
+
+    if (isScanning) {
+      requestAnimationFrame(scan);
     }
   };
 
-  // Nettoyage automatique à la destruction du composant
+  // Lancer le scan quand isScanning change
+  useEffect(() => {
+    if (isScanning) {
+      requestAnimationFrame(scan);
+    }
+  }, [isScanning]);
+
+  useEffect(() => {
+    const handledata = async () => {
+      if (scannedData != null) {
+        const response = await fetch(
+          "http://localhost:3000/api/presence/manuelle",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id_user: scannedData, status: "Present" }),
+          }
+        );
+        const result = await response.json();
+
+        if (response.ok) {
+          alert("présence effectué");
+        } else {
+          const error: Qrcodeerror = result;
+          alert(`Erreur lors de la présence : ${error.message}`);
+        }
+      }
+    };
+
+    handledata();
+  }, [scannedData]);
+  // Nettoyage au démontage du composant
   useEffect(() => {
     return () => {
-      stopScanner();
+      stopScanning();
     };
   }, []);
 
   return (
-    <div className="flex flex-col items-center space-y-4 mt-6 border-2">
-      <h2 className="text-2xl font-bold mt-10">Scanner QR Code</h2>
-      <p className="text-gray-600">
-        Scannez votre code QR étudiant pour enregistrer votre présence
-      </p>
-
-      <div
-        id={scannerId}
-        className="bg-gray-900 rounded-lg w-[600px] h-[300px] flex items-center justify-center text-white"
-      >
-        {!isScanning && (
-          <p className="text-center">
-            Prêt à scanner
-            <br />
-            <span className="text-sm text-gray-400">
-              Cliquez pour activer la caméra
-            </span>
-          </p>
-        )}
+    <div className="flex flex-col items-center gap-4 p-4">
+      <div className="w-64 h-64 bg-white border-2 border-gray-300 rounded-lg overflow-hidden flex items-center justify-center">
+        <video
+          ref={videoRef}
+          className={`w-full h-full object-cover ${
+            isScanning ? "block" : "hidden"
+          }`}
+          playsInline
+          muted
+        />
+        <canvas ref={canvasRef} className="hidden" />
       </div>
 
-      {!isScanning && (
-        <Button
-          onClick={startScanner}
-          className="bg-blue-600 hover:bg-blue-700 w-[600px] text-white mb-10"
-        >
-          📸 Démarrer le scan
-        </Button>
-      )}
-
-      {scannedCode && (
-        <p className="text-green-600 mt-2">
-          ✅ QR détecté : <strong>{scannedCode}</strong>
-        </p>
-      )}
+      <button
+        onClick={isScanning ? stopScanning : startScanning}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        {isScanning ? "Arrêter" : "Scanner"}
+      </button>
     </div>
   );
 }
