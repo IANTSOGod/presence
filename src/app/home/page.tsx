@@ -325,7 +325,7 @@ export default function Page() {
                 </p>
               </div>
             )
-          ) : (
+          ) : (allpresence?.length ?? 0) > 0 ? (
             allpresence?.map((presence) => (
               <Card key={presence.id} className="mx-20 mt-10 h-[150px]">
                 <CardTitle className="text-xl text-blue-500 ml-5">
@@ -334,15 +334,25 @@ export default function Page() {
                 <CardContent className="flex">
                   <Label>{presence.to_course.has_matiere.titre}</Label>
                   <Label className="ml-auto">
-                    {presence.is_valid ? (
-                      <Badge variant={"secondary"}>Présent</Badge>
-                    ) : (
-                      <Badge variant={"destructive"}>Absent</Badge>
-                    )}
+                    <Badge
+                      variant={
+                        presence.status == "Present"
+                          ? "secondary"
+                          : "destructive"
+                      }
+                    >
+                      {presence.status}
+                    </Badge>
                   </Label>
                 </CardContent>
               </Card>
             ))
+          ) : (
+            <div className="flex justify-center items-center h-40">
+              <p className="text-gray-500 text-lg italic">
+                Aucune présence dans la bd
+              </p>
+            </div>
           )}
         </div>
       </div>
