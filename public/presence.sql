@@ -30,6 +30,18 @@ CREATE TYPE public."Role" AS ENUM (
 
 ALTER TYPE public."Role" OWNER TO iantso;
 
+--
+-- Name: StatusPresence; Type: TYPE; Schema: public; Owner: iantso
+--
+
+CREATE TYPE public."StatusPresence" AS ENUM (
+    'Present',
+    'Absent'
+);
+
+
+ALTER TYPE public."StatusPresence" OWNER TO iantso;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -84,7 +96,8 @@ CREATE TABLE public."Presence" (
     id text NOT NULL,
     id_cours text NOT NULL,
     id_etudiant text NOT NULL,
-    is_valid boolean DEFAULT false NOT NULL
+    is_valid boolean DEFAULT false NOT NULL,
+    status public."StatusPresence" NOT NULL
 );
 
 
@@ -113,7 +126,7 @@ ALTER TABLE public._prisma_migrations OWNER TO iantso;
 --
 
 COPY public."Cours" (id, id_matiere, date_deb, date_fin) FROM stdin;
-cmbibys8a0001ijr0x1fniiao	cmbhxnchv0000ij73c74mzo46	2025-06-04 22:00:00	2025-06-04 23:00:00
+cmbmd6m6l0001ijle99nwr5if	cmbhxnqrz0002ij73lv9t05af	2025-06-07 18:00:00	2025-06-07 20:00:00
 \.
 
 
@@ -137,6 +150,7 @@ cmbhxo5jr0004ij73924iumg8	Communication
 COPY public."Personne" (id, nom, prenom, mdp, email, role) FROM stdin;
 cmbhye7710000ijej4r8bjh9y	Harrice	Brice Privat	$2b$12$Qq/BzW/fzUzlMhhZisdHC.N0I9gGLqkvuDbUUg8T4T4055EiqI89i	brice292@gmail.com	Etudiant
 cmbi7o8b50000ijmjhyd3h1jm	RAZAFINDRAZAKA	Iantso Christian	$2b$12$gWyfMNTAyu0GZr9vP.qlperGG2jQqZmfb6bAm77Hu.Eb.lhlfKNCq	iantsochristianrazafindrazaka@gmail.com	Etudiant
+cmbkj466a0000ijj2nc9fzixf	ANDRIAMAHAROARIVO	Christianah	$2b$12$wuA8P.hfpNueiXzzivSQmuPvsqQNJarEgRB0R7NoCkgZM7l3TXISW	christianah@gmail.com	Enseignant
 \.
 
 
@@ -144,8 +158,8 @@ cmbi7o8b50000ijmjhyd3h1jm	RAZAFINDRAZAKA	Iantso Christian	$2b$12$gWyfMNTAyu0GZr9
 -- Data for Name: Presence; Type: TABLE DATA; Schema: public; Owner: iantso
 --
 
-COPY public."Presence" (id, id_cours, id_etudiant, is_valid) FROM stdin;
-cmbibzwlr0003ijr04c52scp4	cmbibys8a0001ijr0x1fniiao	cmbhye7710000ijej4r8bjh9y	t
+COPY public."Presence" (id, id_cours, id_etudiant, is_valid, status) FROM stdin;
+cmbmd8hqz0001ijw1r8o926k5	cmbmd6m6l0001ijle99nwr5if	cmbi7o8b50000ijmjhyd3h1jm	t	Present
 \.
 
 
@@ -158,6 +172,7 @@ bdf35ae6-f2ce-4d61-a541-7203eeb6db5d	7d87df3b1c833f35da99fe396ead59ed44d8bd56909
 1fea0f87-3b4d-45d4-b1b3-9e1b6ffdcb40	e808370a1deb46aca7013ef878d1dc0f96d3a91571bbdddb36c44b4a5805ecd5	2025-06-04 15:54:13.783745+03	20250604125413_changing_key	\N	\N	2025-06-04 15:54:13.764037+03	1
 5ff30b4f-eed9-4d30-8b23-608fa1766bb0	5aaed2729076e5249573b169ddc15bb81d49b014b5a249a436e1e245ec57c6f6	2025-06-04 16:11:14.583092+03	20250604131114_changing_key_2	\N	\N	2025-06-04 16:11:14.565324+03	1
 a587d26c-43ca-4c7c-87ff-fea1bb435d6e	985e3b4f0f2a8b3d00ab9974f2d82c9ceea2c6bc03e2fde17a7f830f05987cfb	2025-06-04 16:50:47.127992+03	20250604135046_adding_key	\N	\N	2025-06-04 16:50:47.110381+03	1
+1606d1d7-ab5d-492d-98e4-b5a83bb6db66	f212f1fc9902a1267a9a0b9fc8b06db91157fca3898e013be92da850e825bc9e	2025-06-07 17:53:33.953912+03	20250607145333_adding_presence_status	\N	\N	2025-06-07 17:53:33.93461+03	1
 \.
 
 
