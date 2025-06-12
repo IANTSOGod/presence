@@ -21,10 +21,10 @@ export async function POST(req: NextRequest) {
           id_cours: cours[0].id,
         },
         include: {
-          do_presence: true, // Inclut les infos de l'étudiant
+          do_presence: true,
           to_course: {
             include: {
-              has_matiere: true, // Inclut les infos de la matière du cours
+              has_matiere: true,
             },
           },
         },

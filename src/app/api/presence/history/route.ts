@@ -6,7 +6,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { etudiant, matiere, date } = body;
 
-    // 1️⃣ Recherche des personnes (étudiants)
     const personnes = await Prisma.personne.findMany({
       where: etudiant
         ? {
@@ -27,12 +26,11 @@ export async function POST(req: NextRequest) {
 
     const idpersonnes = personnes.map((c) => c.id);
 
-    // 2️⃣ Recherche des matières (optionnelle)
     const matieres = matiere
       ? await Prisma.matiere.findMany({
           where: { titre: matiere },
         })
-      : await Prisma.matiere.findMany(); // toutes les matières si rien n'est précisé
+      : await Prisma.matiere.findMany();
 
     const idMatieres = matieres.map((m) => m.id);
 
@@ -43,10 +41,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3️⃣ Recherche des cours selon les matières et date (si fournie)
-    const targetDate = new Date(date); // la date reçue (ex : 2025-06-01T08:54:00.000Z)
+    const targetDate = new Date(date);
 
-    // Créer les bornes de la journée en UTC
     const startOfDay = new Date(targetDate);
     startOfDay.setUTCHours(0, 0, 0, 0);
 
@@ -72,7 +68,6 @@ export async function POST(req: NextRequest) {
 
     const idCourses = cours.map((c) => c.id);
 
-    // 4️⃣ Recherche des présences correspondantes
     const presences = await Prisma.presence.findMany({
       where: {
         id_cours: { in: idCourses },
@@ -81,7 +76,7 @@ export async function POST(req: NextRequest) {
       include: {
         to_course: {
           include: {
-            has_matiere: true, // Inclure la matière associée
+            has_matiere: true, 
           },
         },
         do_presence: true,

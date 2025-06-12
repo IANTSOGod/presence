@@ -3,7 +3,6 @@ import { lastday } from "@/lib/lastday";
 import Prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-// Interface pour typer la requête (facultative ici)
 interface RequestBody {
   matiere?: string;
   period?: "semaine" | "mois" | "semestre";
@@ -13,12 +12,10 @@ export async function POST(req: NextRequest) {
   const body: RequestBody = await req.json();
   const { matiere, period } = body;
 
-  // Calculer les dates limites pour filtrer
   const start = firstday();
   const end = lastday();
 
   try {
-    // Construire dynamiquement le filtre de date selon la période
     let dateFilter: any = {};
     if (period === "semaine") {
       dateFilter = {
@@ -37,13 +34,12 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    // Chercher tous les cours selon la période et éventuellement la matière
     const cours = await Prisma.cours.findMany({
       where: {
         ...dateFilter,
         ...(matiere && {
           has_matiere: {
-            titre: matiere, // comparer par titre
+            titre: matiere,
           },
         }),
       },
@@ -61,9 +57,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const idsCours = cours.map((c) => c.id); // extraire les IDs des cours trouvés
-
-    // Récupérer les présences valides de ces cours
+    const idsCours = cours.map((c) => c.id);
     const presences = await Prisma.presence.findMany({
       where: {
         id_cours: { in: idsCours },
@@ -79,7 +73,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Grouper les présences par titre de matière
     const grouped: { [matiere: string]: typeof presences } = {};
 
     for (const presence of presences) {

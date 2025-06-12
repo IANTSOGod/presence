@@ -79,7 +79,6 @@ export default function Qrscanner() {
     }
   };
 
-  // Lancer le scan quand isScanning change
   useEffect(() => {
     if (isScanning) {
       requestAnimationFrame(scan);
@@ -112,7 +111,7 @@ export default function Qrscanner() {
 
     handledata();
   }, [scannedData]);
-  // Nettoyage au démontage du composant
+
   useEffect(() => {
     return () => {
       stopScanning();
