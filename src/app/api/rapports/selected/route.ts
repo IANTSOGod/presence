@@ -3,125 +3,92 @@ import { lastday } from "@/lib/lastday";
 import Prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { id_matiere, period } = body;
+// Interface pour typer la requête (facultative ici)
+interface RequestBody {
+  matiere?: string;
+  period?: "semaine" | "mois" | "semestre";
+}
 
-  const start = firstday(); // { debutSemaine, debutMois, debutSemestre }
-  const end = lastday(); // { finSemaine, finMois, finSemestre }
+export async function POST(req: NextRequest) {
+  const body: RequestBody = await req.json();
+  const { matiere, period } = body;
+
+  // Calculer les dates limites pour filtrer
+  const start = firstday();
+  const end = lastday();
 
   try {
-    if (id_matiere) {
-      if (period === "semaine") {
-        // 1. Récupérer les cours de la semaine pour cette matière
-        const coursSemaine = await Prisma.cours.findMany({
-          where: {
-            id_matiere: id_matiere,
-            date_deb: { gte: start.debutSemaine },
-            date_fin: { lte: end.finSemaine },
-          },
-        });
-        // 2. Extraire les IDs de cours
-        const idsCours = coursSemaine.map((c) => c.id);
-        // 3. Récupérer les présences associées à ces cours
-        const presences = await Prisma.presence.findMany({
-          where: {
-            id_cours: { in: idsCours },
-            is_valid: true,
-          },
-        });
-        return NextResponse.json({ presences });
-      } else if (period === "mois") {
-        // 1. Récupérer les cours du mois pour cette matière
-        const coursMois = await Prisma.cours.findMany({
-          where: {
-            id_matiere: id_matiere,
-            date_deb: { gte: start.debutMois },
-            date_fin: { lte: end.finMois },
-          },
-        });
-        // 2. Extraire les IDs de cours
-        const idsCours = coursMois.map((c) => c.id);
-        // 3. Récupérer les présences associées à ces cours
-        const presences = await Prisma.presence.findMany({
-          where: {
-            id_cours: { in: idsCours },
-          },
-        });
-        return NextResponse.json({ presences });
-      } else if (period === "semestre") {
-        const coursSemestre = await Prisma.cours.findMany({
-          where: {
-            id_matiere: id_matiere,
-            date_deb: { gte: start.debutSemestre },
-            date_fin: { lte: end.finSemestre },
-          },
-        });
-        // 2. Extraire les IDs de cours
-        const idsCours = coursSemestre.map((c) => c.id);
-        // 3. Récupérer les présences associées à ces cours
-        const presences = await Prisma.presence.findMany({
-          where: {
-            id_cours: { in: idsCours },
-            is_valid: true,
-          },
-        });
-        return NextResponse.json({ presences });
-      }
-    } else {
-      if (period === "semaine") {
-        const coursSemaine = await Prisma.cours.findMany({
-          where: {
-            date_deb: { gte: start.debutSemaine },
-            date_fin: { lte: end.finSemaine },
-          },
-        });
-        // 2. Extraire les IDs de cours
-        const idsCours = coursSemaine.map((c) => c.id);
-        // 3. Récupérer les présences associées à ces cours
-        const presences = await Prisma.presence.findMany({
-          where: {
-            id_cours: { in: idsCours },
-            is_valid: true,
-          },
-        });
-        return NextResponse.json({ presences });
-      } else if (period === "mois") {
-        // 1. Récupérer les cours du mois pour cette matière
-        const coursMois = await Prisma.cours.findMany({
-          where: {
-            date_deb: { gte: start.debutMois },
-            date_fin: { lte: end.finMois },
-          },
-        });
-        // 2. Extraire les IDs de cours
-        const idsCours = coursMois.map((c) => c.id);
-        // 3. Récupérer les présences associées à ces cours
-        const presences = await Prisma.presence.findMany({
-          where: {
-            id_cours: { in: idsCours },
-            is_valid: true,
-          },
-        });
-        return NextResponse.json({ presences });
-      } else if (period === "semestre") {
-        const coursSemestre = await Prisma.cours.findMany({
-          where: {
-            date_deb: { gte: start.debutSemestre },
-            date_fin: { lte: end.finSemestre },
-          },
-        });
-        const idsCours = coursSemestre.map((c) => c.id);
-        const presences = await Prisma.presence.findMany({
-          where: {
-            id_cours: { in: idsCours },
-            is_valid: true,
-          },
-        });
-
-        return NextResponse.json(presences);
-      }
+    // Construire dynamiquement le filtre de date selon la période
+    let dateFilter: any = {};
+    if (period === "semaine") {
+      dateFilter = {
+        date_deb: { gte: start.debutSemaine },
+        date_fin: { lte: end.finSemaine },
+      };
+    } else if (period === "mois") {
+      dateFilter = {
+        date_deb: { gte: start.debutMois },
+        date_fin: { lte: end.finMois },
+      };
+    } else if (period === "semestre") {
+      dateFilter = {
+        date_deb: { gte: start.debutSemestre },
+        date_fin: { lte: end.finSemestre },
+      };
     }
+
+    // Chercher tous les cours selon la période et éventuellement la matière
+    const cours = await Prisma.cours.findMany({
+      where: {
+        ...dateFilter,
+        ...(matiere && {
+          has_matiere: {
+            titre: matiere, // comparer par titre
+          },
+        }),
+      },
+      select: {
+        id: true,
+        id_matiere: true,
+        date_deb: true,
+        date_fin: true,
+        has_matiere: {
+          select: {
+            id: true,
+            titre: true,
+          },
+        },
+      },
+    });
+
+    const idsCours = cours.map((c) => c.id); // extraire les IDs des cours trouvés
+
+    // Récupérer les présences valides de ces cours
+    const presences = await Prisma.presence.findMany({
+      where: {
+        id_cours: { in: idsCours },
+        is_valid: true,
+      },
+      include: {
+        to_course: {
+          include: {
+            has_matiere: true,
+          },
+        },
+        do_presence: true,
+      },
+    });
+
+    // Grouper les présences par titre de matière
+    const grouped: { [matiere: string]: typeof presences } = {};
+
+    for (const presence of presences) {
+      const titre = presence.to_course?.has_matiere?.titre || "Inconnue";
+      if (!grouped[titre]) grouped[titre] = [];
+      grouped[titre].push(presence);
+    }
+
+    return NextResponse.json([grouped]);
   } catch (error) {
     console.error("Erreur :", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

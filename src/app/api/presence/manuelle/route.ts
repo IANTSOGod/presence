@@ -18,6 +18,15 @@ export async function POST(req: NextRequest) {
       const presenceExiste = await Prisma.presence.findMany({
         where: {
           id_etudiant: id_user,
+          id_cours: cours[0].id,
+        },
+        include: {
+          do_presence: true, // Inclut les infos de l'étudiant
+          to_course: {
+            include: {
+              has_matiere: true, // Inclut les infos de la matière du cours
+            },
+          },
         },
       });
       if (presenceExiste.length > 0) {

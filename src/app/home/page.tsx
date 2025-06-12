@@ -23,6 +23,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getDate } from "@/lib/getdate";
 
 interface docourseInterface2 {
   id: string;
@@ -304,6 +305,10 @@ export default function Page() {
                   </CardTitle>
                   <CardContent className="flex">
                     <Label>{presence.to_course.has_matiere.titre}</Label>
+                    <Label className="ml-10">
+                      {getDate(presence.to_course.date_deb)}-
+                      {getDate(presence.to_course.date_fin)}
+                    </Label>{" "}
                     <Label className="ml-auto">
                       <Badge
                         variant={
@@ -333,6 +338,10 @@ export default function Page() {
                 </CardTitle>
                 <CardContent className="flex">
                   <Label>{presence.to_course.has_matiere.titre}</Label>
+                  <Label className="ml-10">
+                    {getDate(presence.to_course.date_deb)}-
+                    {getDate(presence.to_course.date_fin)}
+                  </Label>
                   <Label className="ml-auto">
                     <Badge
                       variant={
