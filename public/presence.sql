@@ -127,6 +127,7 @@ ALTER TABLE public._prisma_migrations OWNER TO iantso;
 
 COPY public."Cours" (id, id_matiere, date_deb, date_fin) FROM stdin;
 cmbmd6m6l0001ijle99nwr5if	cmbhxnqrz0002ij73lv9t05af	2025-06-07 18:00:00	2025-06-07 20:00:00
+cmbt18g9m0001ijckye4wnx6x	cmbhxnqrz0002ij73lv9t05af	2025-06-12 10:00:00	2025-06-12 14:00:00
 \.
 
 
@@ -151,6 +152,7 @@ COPY public."Personne" (id, nom, prenom, mdp, email, role) FROM stdin;
 cmbhye7710000ijej4r8bjh9y	Harrice	Brice Privat	$2b$12$Qq/BzW/fzUzlMhhZisdHC.N0I9gGLqkvuDbUUg8T4T4055EiqI89i	brice292@gmail.com	Etudiant
 cmbi7o8b50000ijmjhyd3h1jm	RAZAFINDRAZAKA	Iantso Christian	$2b$12$gWyfMNTAyu0GZr9vP.qlperGG2jQqZmfb6bAm77Hu.Eb.lhlfKNCq	iantsochristianrazafindrazaka@gmail.com	Etudiant
 cmbkj466a0000ijj2nc9fzixf	ANDRIAMAHAROARIVO	Christianah	$2b$12$wuA8P.hfpNueiXzzivSQmuPvsqQNJarEgRB0R7NoCkgZM7l3TXISW	christianah@gmail.com	Enseignant
+cmbt1xg260004ijck8mf5in0f	HERIMAMPIONONA	Santatrasoa Diary	$2b$12$Zc0oFCcX9jq9DS8eNi4kVe5CcOAaBlkts0ghz3INb5/5orBFSiNJu	diary@gmail.com	Enseignant
 \.
 
 
@@ -159,7 +161,8 @@ cmbkj466a0000ijj2nc9fzixf	ANDRIAMAHAROARIVO	Christianah	$2b$12$wuA8P.hfpNueiXzzi
 --
 
 COPY public."Presence" (id, id_cours, id_etudiant, is_valid, status) FROM stdin;
-cmbmd8hqz0001ijw1r8o926k5	cmbmd6m6l0001ijle99nwr5if	cmbi7o8b50000ijmjhyd3h1jm	t	Present
+cmbmd8hqz0001ijw1r8o926k5	cmbmd6m6l0001ijle99nwr5if	cmbi7o8b50000ijmjhyd3h1jm	t	Absent
+cmbt1hwly0003ijcknpn4g6z6	cmbt18g9m0001ijckye4wnx6x	cmbi7o8b50000ijmjhyd3h1jm	f	Present
 \.
 
 
